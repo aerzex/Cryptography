@@ -73,12 +73,12 @@ def transform_g(n: bytes, hash: bytearray, message: bytearray):
     transform_x(temp, message, hash)
 
 def streebog_function(message: bytes, hash: bytearray):
-    bin_mes = list(message)
+    data_bytes = list(message)
     n = bytearray(64)
     sigma = bytearray(64)
     
-    for i in range(0, len(bin_mes), 64):
-        part = bin_mes[i:i + 64]
+    for i in range(0, len(data_bytes), 64):
+        part = data_bytes[i:i + 64]
         block = bytearray(64)
         block[:len(part)] = part
         if len(part) < 64:
@@ -89,7 +89,7 @@ def streebog_function(message: bytes, hash: bytearray):
         n = add_512(n, struct.pack('>Q', len(part) * 8).rjust(64, b'\x00'))
         sigma = add_512(sigma, block)
     
-    if len(bin_mes) % 64 == 0:
+    if len(data_bytes) % 64 == 0:
         extra_block = bytearray(64)
         extra_block[0] = 0x01
         extra_block.reverse()
