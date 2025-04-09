@@ -1,5 +1,5 @@
 import struct
-from constants import PI, TAU, A, C
+from .constants import PI, TAU, A, C
 
 def convert_to_bytes(data):
     if isinstance(data, str):
@@ -73,7 +73,8 @@ def transform_g(n: bytes, hash: bytearray, message: bytearray):
     transform_x(temp, message, hash)
 
 def streebog_function(message: bytes, hash: bytearray):
-    data_bytes = list(message)
+    data_bytes = convert_to_bytes(message)
+    data_bytes = list(data_bytes)
     n = bytearray(64)
     sigma = bytearray(64)
     

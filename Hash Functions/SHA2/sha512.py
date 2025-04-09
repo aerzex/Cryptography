@@ -1,5 +1,17 @@
+def convert_to_bytes(data):
+    if isinstance(data, str):
+        return data.encode('utf-8')
+    elif isinstance(data, int):
+        return data.to_bytes((data.bit_length() + 7) // 8 or 1, 'big')
+    elif isinstance(data, bytes):
+        return data
+    elif isinstance(data, list) and all(isinstance(x, int) and 0 <= x <= 255 for x in data):
+        return bytes(data)
+    else:
+        raise TypeError("Unsupported data type. Use str, int, bytes, or list of bytes.")
+
 def sha512_function(data):
-    data_bytes = data.encode('utf-8')
+    data_bytes = convert_to_bytes(data)
     bit_len = len(data_bytes) * 8
     padding = b'\x80' + b'\x00' * (112 - (len(data_bytes) + 1) % 128)
     data_bytes = data_bytes + padding + bit_len.to_bytes(16, 'big')
@@ -69,11 +81,18 @@ def sha512_function(data):
 
     h0, h1, h2, h3, h4, h5, h6, h7 = h_dict.values()
     
-    digest_hex = (
-        f"{h0:016x}" + f"{h1:016x}" + f"{h2:016x}" + f"{h3:016x}" +
-        f"{h4:016x}" + f"{h5:016x}" + f"{h6:016x}" + f"{h7:016x}"
+    # digest_hex = (
+    #     f"{h0:016x}" + f"{h1:016x}" + f"{h2:016x}" + f"{h3:016x}" +
+    #     f"{h4:016x}" + f"{h5:016x}" + f"{h6:016x}" + f"{h7:016x}"
+    # )
+
+    digest_bytes = (
+    h0.to_bytes(8, 'big') + h1.to_bytes(8, 'big') +
+    h2.to_bytes(8, 'big') + h3.to_bytes(8, 'big') +
+    h4.to_bytes(8, 'big') + h5.to_bytes(8, 'big') +
+    h6.to_bytes(8, 'big') + h7.to_bytes(8, 'big')
     )
-    return digest_hex
+    return digest_bytes
 
 
 def rightrotate(x, n, bits=64):
@@ -81,9 +100,3 @@ def rightrotate(x, n, bits=64):
 
 def rightshift(x, n):
     return x >> n
-
-def main():
-    input_string = "Привет, мир"
-    print(sha512_function(input_string))
-
-main()
