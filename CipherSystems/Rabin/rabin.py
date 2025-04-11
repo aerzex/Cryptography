@@ -27,6 +27,17 @@ def generate_keys(size):
     
     return pub_key, scrt_key
 
+def convert_to_bytes(data):
+    if isinstance(data, str):
+        return data.encode('utf-8')
+    elif isinstance(data, int):
+        return data.to_bytes((data.bit_length() + 7) // 8 or 1, 'big')
+    elif isinstance(data, bytes):
+        return data
+    elif isinstance(data, list) and all(isinstance(x, int) and 0 <= x <= 255 for x in data):
+        return bytes(data)
+    else:
+        raise TypeError("Unsupported data type. Use str, int, bytes, or list of bytes.")
 
 def encrypt(message, pub_key):
     N = pub_key["N"]
@@ -34,8 +45,8 @@ def encrypt(message, pub_key):
     hash_length = 32
     max_msg_len = block_size - 3 - hash_length - 8
     
-    encoded = message.encode('utf-8')
-    blocks = [encoded[i:i + max_msg_len] for i in range(0, len(encoded), max_msg_len)]
+    data_bytes = convert_to_bytes(message)
+    blocks = [data_bytes[i:i + max_msg_len] for i in range(0, len(data_bytes), max_msg_len)]
     enc_blocks = []
     for block in blocks: 
         hash_digest = hashlib.sha256(block).digest()[:hash_length]
@@ -51,7 +62,6 @@ def encrypt(message, pub_key):
         enc_block = algorithm_fast_pow(int_block, 2, N)
         enc_blocks.append(enc_block)
         
-    print(enc_blocks)
     return enc_blocks
 
 

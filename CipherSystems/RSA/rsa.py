@@ -57,14 +57,26 @@ def generate_keys(length):
 
     return pub_key, scrt_key
 
+def convert_to_bytes(data):
+    if isinstance(data, str):
+        return data.encode('utf-8')
+    elif isinstance(data, int):
+        return data.to_bytes((data.bit_length() + 7) // 8 or 1, 'big')
+    elif isinstance(data, bytes):
+        return data
+    elif isinstance(data, list) and all(isinstance(x, int) and 0 <= x <= 255 for x in data):
+        return bytes(data)
+    else:
+        raise TypeError("Unsupported data type. Use str, int, bytes, or list of bytes.")
+
 def encrypt(message):
     pub_key = load_public_key_from_pem("CipherSystems/RSA/rsa_keys/pub_key.pem")
     N = pub_key["SubjectPublicKeyInfo"]["N"]
     block_size = (N.bit_length() + 7) // 8
     max_msg_len = block_size - 3 - 8
 
-    encoded = message.encode('utf-8')
-    blocks = [encoded[i:i + max_msg_len] for i in range(0, len(encoded), max_msg_len)]
+    data_bytes = convert_to_bytes(message)
+    blocks = [data_bytes[i:i + max_msg_len] for i in range(0, len(data_bytes), max_msg_len)]
     enc_blocks = []
     for block in blocks:
         pad_length = block_size - 3 - len(block)
