@@ -185,7 +185,6 @@ def algorithm_second_degree_comparison(a, p):
     for i in range(k):
         b = a1 * N2 % p
         c = a2 * algorithm_fast_pow(b, 2, p) % p
-        print(k - 2 -i)
         d = algorithm_fast_pow(c, algorithm_fast_pow(2, k - 2 - i, p), p)
 
         j = 0 if d == 1 else 1

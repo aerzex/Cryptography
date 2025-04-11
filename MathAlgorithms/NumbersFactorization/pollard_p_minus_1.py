@@ -4,9 +4,9 @@ import os
 import math
 import json
 
-lib_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'algorithms'))
+lib_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 sys.path.append(lib_path)
-from algorithms import algorithm_fast_pow, algorithm_euclid_extended, algorithm_Miller_Rabin_test
+from NumberTheoreticAlgorithms.algorithms import algorithm_fast_pow, algorithm_euclid_extended, algorithm_Miller_Rabin_test
 
 def algorithm_pollard_p_minus_1(N):
     if algorithm_Miller_Rabin_test(N):
@@ -22,7 +22,7 @@ def algorithm_pollard_p_minus_1(N):
     if N in small_factors:
         return small_factors[N]
 
-    with open("Numbers_Factorization/src/prime_numbers.json", "r") as json_file:
+    with open("MathAlgorithms/NumbersFactorization/prime_numbers.json", "r") as json_file:
         primes = json.load(json_file)["primes"]
 
     a = random.randint(2, N - 2)

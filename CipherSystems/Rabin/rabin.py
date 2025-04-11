@@ -2,9 +2,9 @@ import sys
 import os
 import secrets
 import json
-lib_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../Math Algorithms', 'algorithms'))
+lib_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '../..'))
 sys.path.append(lib_path)
-from algorithms import algorithm_fast_pow, algorithm_euclid_extended, algorithm_generate_prime, algorithm_comprasion, algorithm_second_degree_comparison
+from MathAlgorithms.NumberTheoreticAlgorithms.algorithms import algorithm_fast_pow, algorithm_euclid_extended, algorithm_generate_prime, algorithm_comprasion, algorithm_second_degree_comparison
 
 import hashlib
 
@@ -28,9 +28,7 @@ def generate_keys(size):
     return pub_key, scrt_key
 
 
-def encrypt(message):
-    with open("Cipher Systems/Rabin/rabin_keys/pub_key.json", "r", encoding="utf-8") as json_file:
-        pub_key = json.load(json_file)
+def encrypt(message, pub_key):
     N = pub_key["N"]
     block_size = (N.bit_length() + 7) // 8
     hash_length = 32
@@ -52,13 +50,12 @@ def encrypt(message):
         int_block = int.from_bytes(padded_block, 'big')
         enc_block = algorithm_fast_pow(int_block, 2, N)
         enc_blocks.append(enc_block)
-    
+        
+    print(enc_blocks)
     return enc_blocks
 
 
-def decrypt(enc_message):
-    with open("Cipher Systems/Rabin/rabin_keys/scrt_key.json", "r", encoding="utf-8") as json_file:
-        scrt_key = json.load(json_file)
+def decrypt(enc_message, scrt_key):
     p, q = scrt_key["prime1"], scrt_key["prime2"]
     N = p * q
     block_size = (N.bit_length() + 7) // 8
@@ -100,22 +97,8 @@ def generate_padding(length):
             return b'\x00\x02' + padding + b'\x00'
         
 def save_keys(scrt_key, pub_key):
-    with open("Cipher Systems/Rabin/rabin_keys/pub_key.json", "w", encoding="utf-8") as json_file:
+    with open("CipherSystems/Rabin/rabin_keys/pub_key.json", "w", encoding="utf-8") as json_file:
         json.dump(pub_key, json_file, ensure_ascii=False, indent=4)
-    with open("Cipher Systems/Rabin/rabin_keys/scrt_key.json", "w", encoding="utf-8") as json_file:
+    with open("CipherSystems/Rabin/rabin_keys/scrt_key.json", "w", encoding="utf-8") as json_file:
         json.dump(scrt_key, json_file, ensure_ascii=False, indent=4)
 
-
-        
-def main():
-    size = int(input("Enter size of N: "))
-    message_en = "If I don’t like a thing, I don’t like it, that’s all; and there is no reason under the sun why I should ape a liking for it just because the majority of my fellow-creatures like it, or make believe they like it. I can’t follow the fashions in the things I like or dislike."
-    message_ru = "Если мне что-то не нравится, значит, не нравится, и все тут; так с какой стати, спрашивается, я стану делать вид, будто мне это нравится, только потому, что большинству моих соплеменников это нравится или они воображают, что нравится. Не могу я что-то любить или не любить по велению моды."
-    enc_message = encrypt(message_ru)
-    dec_message = decrypt(enc_message)
-    print(enc_message)
-    print(dec_message)
-
-
-    
-main()

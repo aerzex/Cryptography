@@ -3,9 +3,9 @@ import os
 import secrets
 import json
 
-lib_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../Math Algorithms', 'algorithms'))
+lib_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '../..'))
 sys.path.append(lib_path)
-from algorithms import algorithm_fast_pow, algorithm_generate_prime, algorithm_comprasion, algorithm_all_divisors, algorithm_Miller_Rabin_test
+from MathAlgorithms.NumberTheoreticAlgorithms.algorithms import algorithm_fast_pow, algorithm_generate_prime, algorithm_comprasion, algorithm_all_divisors, algorithm_Miller_Rabin_test
 
 def generate_padding(length):
     while True:
@@ -14,9 +14,9 @@ def generate_padding(length):
             return b'\x00\x02' + padding + b'\x00'
         
 def save_keys(scrt_key, pub_key):
-    with open("Cipher Systems/ElGamal/elgamal_keys/pub_key.json", "w", encoding="utf-8") as json_file:
+    with open("CipherSystems/ElGamal/elgamal_keys/pub_key.json", "w", encoding="utf-8") as json_file:
         json.dump(pub_key, json_file, ensure_ascii=False, indent=4)
-    with open("Cipher Systems/ElGamal/elgamal_keys/scrt_key.json", "w", encoding="utf-8") as json_file:
+    with open("CipherSystems/ElGamal/elgamal_keys/scrt_key.json", "w", encoding="utf-8") as json_file:
         json.dump(scrt_key, json_file, ensure_ascii=False, indent=4)
 
 def generate_keys(size):
@@ -53,8 +53,8 @@ def generate_keys(size):
     save_keys(scrt_key, pub_key)
 
 
-def encrypt(message):
-    with open("Cipher Systems/ElGamal/elgamal_keys/pub_key.json", "r", encoding="utf-8") as json_file:
+def encrypt(message, pub_key):
+    with open("CipherSystems/ElGamal/elgamal_keys/pub_key.json", "r", encoding="utf-8") as json_file:
         pub_key = json.load(json_file)
 
     p, alpha, beta  = pub_key["prime"], pub_key["alpha"], pub_key["beta"]
@@ -81,9 +81,7 @@ def encrypt(message):
 
     return enc_blocks
 
-def decrypt(enc_message):
-    with open("Cipher Systems/ElGamal/elgamal_keys/scrt_key.json", "r", encoding="utf-8") as json_file:
-        scrt_key = json.load(json_file)
+def decrypt(enc_message, scrt_key):
     a, p = scrt_key["a"], scrt_key["prime"]
     block_size = (p.bit_length() + 7) // 8
     dec_blocks = []
@@ -97,17 +95,3 @@ def decrypt(enc_message):
         dec_blocks.append(dec_block[index+1:])
     
     return b''.join(dec_blocks).decode('utf-8')
-
-def main():
-    #size = int(input("Enter size of N: "))
-    message_en = "If I don’t like a thing, I don’t like it, that’s all; and there is no reason under the sun why I should ape a liking for it just because the majority of my fellow-creatures like it, or make believe they like it. I can’t follow the fashions in the things I like or dislike."
-    message_ru = "Если мне что-то не нравится, значит, не нравится, и все тут; так с какой стати, спрашивается, я стану делать вид, будто мне это нравится, только потому, что большинству моих соплеменников это нравится или они воображают, что нравится. Не могу я что-то любить или не любить по велению моды."
-    #generate_keys(size)
-    enc_message = encrypt(message_ru)
-    dec_message = decrypt(enc_message)
-    print(enc_message)
-    print(dec_message)
-
-
-    
-main()

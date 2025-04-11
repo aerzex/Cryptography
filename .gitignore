@@ -1,3 +1,6 @@
-Math Algorithms/algorithms/__pycache__
-Hash Functions/Streebog/__pycache__
-Hash Functions/SHA2/__pycache__
+MathAlgorithms/NumberTheoreticAlgorithms/__pycache__
+HashFunctions/Streebog/__pycache__
+HashFunctions/SHA2/__pycache__
+CipherSystems/Rabin/__pycache__
+CipherSystems/RSA/__pycache__
+CipherSystems/ElGamal/__pycache__

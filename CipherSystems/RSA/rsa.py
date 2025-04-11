@@ -1,9 +1,9 @@
 import sys 
 import os
 import secrets
-lib_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../Math Algorithms', 'algorithms'))
+lib_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '../..'))
 sys.path.append(lib_path)
-from algorithms import algorithm_fast_pow, algorithm_euclid_extended, algorithm_generate_prime, algorithm_comprasion
+from MathAlgorithms.NumberTheoreticAlgorithms.algorithms import algorithm_fast_pow, algorithm_euclid_extended, algorithm_generate_prime, algorithm_comprasion
 from cryptography.hazmat.primitives.asymmetric import rsa
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives import hashes
@@ -58,7 +58,7 @@ def generate_keys(length):
     return pub_key, scrt_key
 
 def encrypt(message):
-    pub_key = load_public_key_from_pem("Cipher Systems/RSA/rsa_keys/pub_key.pem")
+    pub_key = load_public_key_from_pem("CipherSystems/RSA/rsa_keys/pub_key.pem")
     N = pub_key["SubjectPublicKeyInfo"]["N"]
     block_size = (N.bit_length() + 7) // 8
     max_msg_len = block_size - 3 - 8
@@ -81,7 +81,7 @@ def encrypt(message):
     
 
 def decrypt(password, enc_message):
-    scrt_key = load_private_key_from_pfx("Cipher Systems/RSA/rsa_keys/key_store.pfx", password)
+    scrt_key = load_private_key_from_pfx("CipherSystems/RSA/rsa_keys/key_store.pfx", password)
     N = scrt_key["prime1"] * scrt_key["prime2"]
     block_size = (N.bit_length() + 7) // 8
     dec_blocks = []
@@ -96,7 +96,7 @@ def decrypt(password, enc_message):
     
     return b''.join(dec_blocks).decode('utf-8')
 
-def save_keys_windows_format(pub_key, scrt_key, password, filename="Cipher Systems/RSA/rsa_keys/key_store.pfx"): 
+def save_keys_windows_format(pub_key, scrt_key, password, filename="CipherSystems/RSA/rsa_keys/key_store.pfx"): 
     private_numbers = rsa.RSAPrivateNumbers(
         p=scrt_key["prime1"],
         q=scrt_key["prime2"],
@@ -142,7 +142,7 @@ def save_keys_windows_format(pub_key, scrt_key, password, filename="Cipher Syste
     with open(filename, "wb") as f:
         f.write(p12_data)
 
-    with open("Cipher Systems/RSA/rsa_keys/pub_key.pem", "wb") as f:
+    with open("CipherSystems/RSA/rsa_keys/pub_key.pem", "wb") as f:
         f.write(public_key.public_bytes(
             encoding=serialization.Encoding.PEM,
             format=serialization.PublicFormat.SubjectPublicKeyInfo
@@ -187,20 +187,6 @@ def load_public_key_from_pem(filename):
     return pub_key
 
 
-def main():
-    size = int(input("Enter size of N: "))
-    message_en = "If I don’t like a thing, I don’t like it, that’s all; and there is no reason under the sun why I should ape a liking for it just because the majority of my fellow-creatures like it, or make believe they like it. I can’t follow the fashions in the things I like or dislike."
-    message_ru = "Если мне что-то не нравится, значит, не нравится, и все тут; так с какой стати, спрашивается, я стану делать вид, будто мне это нравится, только потому, что большинству моих соплеменников это нравится или они воображают, что нравится. Не могу я что-то любить или не любить по велению моды."
-    pub_key, scrt_key = generate_keys(size)
-    password = "P@ssw0rd"
-    enc_message = encrypt(message_ru)
-    dec_message = decrypt(password, enc_message)
-    print(enc_message)
-    print(dec_message)
-
-
-    
-main()
 
 
 

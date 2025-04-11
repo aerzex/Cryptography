@@ -3,9 +3,9 @@ import sys
 import os
 
 
-lib_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'algorithms'))
+lib_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 sys.path.append(lib_path)
-from algorithms import algorithm_fast_pow, algorithm_euclid_extended, algorithm_Miller_Rabin_test
+from NumberTheoreticAlgorithms.algorithms import algorithm_fast_pow, algorithm_euclid_extended, algorithm_Miller_Rabin_test
 
 def algorithm_p_method(N):
     if algorithm_Miller_Rabin_test(N):
