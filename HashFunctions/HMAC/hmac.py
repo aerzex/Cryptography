@@ -8,13 +8,14 @@ def xor_bytes(a, b):
     return bytes(x ^ y for x, y in zip(a, b))
 
 def hmac_function(key, data, algorithm):
-    pass
+    if algorithm == sha512_function:
+        B = 128
+    elif algorithm == (sha256_function or streebog_256 or streebog_512):
+        B = 64
 
-def hmac_sha256(key, data):
-    B = 64
     key = convert_to_bytes(key)
     data = convert_to_bytes(data)
-    
+
     if len(key) > B:  
         key = sha256_function(key)
     elif len(key) < B:
@@ -23,67 +24,10 @@ def hmac_sha256(key, data):
     ipad = b'\x36' * B
     opad = b'\x5c' * B
 
-    inner_hash = sha256_function(xor_bytes(key, ipad) + data)
-    outer_hash = sha256_function(xor_bytes(key, opad) + inner_hash)
+    inner_hash = algorithm(xor_bytes(key, ipad) + data)
+    outer_hash = algorithm(xor_bytes(key, opad) + inner_hash)
 
-    return outer_hash
+    return outer_hash   
 
-def hmac_sha512(key, data):
-    B = 128
-    key = convert_to_bytes(key)
-    data = convert_to_bytes(data)
-
-    if len(key) > B:  
-        key = sha512_function(key)
-    elif len(key) < B:
-        key += b'\x00' * (B - len(key))
-
-    ipad = b'\x36' * B
-    opad = b'\x5c' * B
-
-    inner_hash = sha512_function(xor_bytes(key, ipad) + data)
-    outer_hash = sha512_function(xor_bytes(key, opad) + inner_hash)
-
-    return outer_hash
-
-def hmac_streebog256(key, data):
-    B = 64
-
-    key = convert_to_bytes(key)
-    data = convert_to_bytes(data)
-
-    if len(key) > B:  
-        key = streebog_256(key)
-    elif len(key) < B:
-        key += b'\x00' * (B - len(key))
-
-    ipad = b'\x36' * B
-    opad = b'\x5c' * B
-
-    inner_hash = streebog_256(xor_bytes(key, ipad) + data)
-    outer_hash = streebog_256(xor_bytes(key, opad) + inner_hash)
-
-    return outer_hash
-
-def hmac_streebog512(key, data):
-    B = 64
-
-    key = convert_to_bytes(key)
-    data = convert_to_bytes(data)
-
-    if len(key) > B:  
-        key = streebog_512(key)
-    elif len(key) < B:
-        key += b'\x00' * (B - len(key))
-
-    ipad = b'\x36' * B
-    opad = b'\x5c' * B
-
-    inner_hash = streebog_512(xor_bytes(key, ipad) + data)
-    outer_hash = streebog_512(xor_bytes(key, opad) + inner_hash)
-
-    return outer_hash
-
-
-print(hmac_sha256("key", "hehe").hex())
-print(hmac_sha512("key", "hehe").hex())
+print(hmac_function("key", "hehe", sha256_function).hex())
+print(hmac_function("key", "hehe", sha512_function).hex())
