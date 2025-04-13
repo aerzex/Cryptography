@@ -88,7 +88,8 @@ def oaep_padding_decode(encoded: bytes, k: int, label: bytes = b""):
     return db[i + 1:]
     
 
-def generate_keys(length):
+def generate_keys(length, dir_path):
+    
     p, q = algorithm_generate_prime(length // 2, 50), algorithm_generate_prime(length // 2, 50)
     N = p * q
     phi_N = (p-1)*(q-1)
@@ -121,7 +122,7 @@ def generate_keys(length):
     }
 
     password = "P@ssw0rd"  
-    save_keys_windows_format(pub_key, scrt_key, password)
+    save_keys_windows_format(pub_key, scrt_key, password, dir_path="CipherSystems/RSA/rsa_keys/")
 
     return pub_key, scrt_key
 
@@ -137,8 +138,8 @@ def convert_to_bytes(data):
     else:
         raise TypeError("Unsupported data type. Use str, int, bytes, or list of bytes.")
 
-def encrypt(message, padding_type="oaep"):
-    pub_key = load_public_key_from_pem("CipherSystems/RSA/rsa_keys/pub_key.pem")
+def encrypt(message, padding_type="oaep", filename="CipherSystems/RSA/rsa_keys/pub_key.pem"):
+    pub_key = load_public_key_from_pem(filename)
     N = pub_key["SubjectPublicKeyInfo"]["N"]
     block_size = (N.bit_length() + 7) // 8
     
@@ -167,8 +168,8 @@ def encrypt(message, padding_type="oaep"):
     return enc_blocks
     
 
-def decrypt(password, enc_message, padding_type="oaep"):
-    scrt_key = load_private_key_from_pfx("CipherSystems/RSA/rsa_keys/key_store.pfx", password)
+def decrypt(password, enc_message, padding_type="oaep", filename="CipherSystems/RSA/rsa_keys/key_store.pfx"):
+    scrt_key = load_private_key_from_pfx(filename, password)
     N = scrt_key["prime1"] * scrt_key["prime2"]
     block_size = (N.bit_length() + 7) // 8
     dec_blocks = []
@@ -183,7 +184,7 @@ def decrypt(password, enc_message, padding_type="oaep"):
     
     return b''.join(dec_blocks).decode('utf-8')
 
-def save_keys_windows_format(pub_key, scrt_key, password, filename="CipherSystems/RSA/rsa_keys/key_store.pfx"): 
+def save_keys_windows_format(pub_key, scrt_key, password, dir_path): 
     private_numbers = rsa.RSAPrivateNumbers(
         p=scrt_key["prime1"],
         q=scrt_key["prime2"],
@@ -226,10 +227,10 @@ def save_keys_windows_format(pub_key, scrt_key, password, filename="CipherSystem
         encryption_algorithm=serialization.BestAvailableEncryption(password.encode())
     )
 
-    with open(filename, "wb") as f:
+    with open(dir_path + "scrt_key.pfx", "wb") as f:
         f.write(p12_data)
 
-    with open("CipherSystems/RSA/rsa_keys/pub_key.pem", "wb") as f:
+    with open(dir_path + "pub_key.pem", "wb") as f:
         f.write(public_key.public_bytes(
             encoding=serialization.Encoding.PEM,
             format=serialization.PublicFormat.SubjectPublicKeyInfo
