@@ -10,7 +10,7 @@ def main():
     enc_message = encrypt(message_ru)
     dec_message = decrypt(password, enc_message)
     print(enc_message)
-    print(dec_message)
+    print(dec_message.decode('utf-8'))
 
 
 if __name__ == "__main__":

@@ -142,7 +142,7 @@ def encrypt(message, padding_type="oaep", filename="CipherSystems/RSA/rsa_keys/p
     pub_key = load_public_key_from_pem(filename)
     N = pub_key["SubjectPublicKeyInfo"]["N"]
     block_size = (N.bit_length() + 7) // 8
-    
+
     if padding_type == "pkcs1_v1_5":
         max_msg_len = block_size - 11
     else:
@@ -150,7 +150,8 @@ def encrypt(message, padding_type="oaep", filename="CipherSystems/RSA/rsa_keys/p
 
     data_bytes = convert_to_bytes(message)
     blocks = [data_bytes[i:i + max_msg_len] for i in range(0, len(data_bytes), max_msg_len)]
-    enc_blocks = []
+    encrypted_bytes = b""
+
     for block in blocks:
         if padding_type == "pkcs1_v1_5":
             pad_length = block_size - 3 - len(block)
@@ -160,29 +161,34 @@ def encrypt(message, padding_type="oaep", filename="CipherSystems/RSA/rsa_keys/p
             padded_block = padding + block
         else:
             padded_block = oaep_padding_encode(block, block_size)
-        
+
         int_block = int.from_bytes(padded_block, 'big')
         enc_block = algorithm_fast_pow(int_block, pub_key["SubjectPublicKeyInfo"]["publicExponent"], N)
-        enc_blocks.append(enc_block)
+        encrypted_bytes += enc_block.to_bytes(block_size, 'big')
 
-    return enc_blocks
+    return encrypted_bytes
     
 
-def decrypt(password, enc_message, padding_type="oaep", filename="CipherSystems/RSA/rsa_keys/key_store.pfx"):
+def decrypt(password, enc_message: bytes, padding_type="oaep", filename="CipherSystems/RSA/rsa_keys/key_store.pfx"):
     scrt_key = load_private_key_from_pfx(filename, password)
     N = scrt_key["prime1"] * scrt_key["prime2"]
     block_size = (N.bit_length() + 7) // 8
+
+    if len(enc_message) % block_size != 0:
+        raise ValueError("Invalid encrypted message length")
+
     dec_blocks = []
-    for block in enc_message:
-        dec_m = algorithm_fast_pow(block, scrt_key["privateExponent"], N)
+    for i in range(0, len(enc_message), block_size):
+        block = enc_message[i:i + block_size]
+        dec_m = algorithm_fast_pow(int.from_bytes(block, 'big'), scrt_key["privateExponent"], N)
         dec_block = dec_m.to_bytes(block_size, byteorder='big')
         if padding_type == "pkcs1_v1_5":
             dec_block = pkcs1_v1_5_padding_decode(dec_m, block_size)
         else:
             dec_block = oaep_padding_decode(dec_block, block_size)
         dec_blocks.append(dec_block)
-    
-    return b''.join(dec_blocks).decode('utf-8')
+
+    return b''.join(dec_blocks)
 
 def save_keys_windows_format(pub_key, scrt_key, password, dir_path): 
     private_numbers = rsa.RSAPrivateNumbers(
