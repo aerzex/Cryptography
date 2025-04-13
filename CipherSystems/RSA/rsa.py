@@ -41,7 +41,7 @@ def mgf1(seed: bytes, length: int, hash_func=sha256_function):
         counter += 1
     return output[:length]
 
-def oaep_padding_encode(message: bytes, k: int, label: bytes = b""):
+def oaep_padding_encode(message: bytes, k: int, label: bytes = b""): # PKCS 1 v2.0
     m_len = len(message)
     hash_len = 32
     if m_len > k - 2 * hash_len - 2:
