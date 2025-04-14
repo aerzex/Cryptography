@@ -15,7 +15,7 @@ from cryptography.x509.oid import NameOID
 from cryptography import x509
 from datetime import datetime, timedelta
 
-def padding_pkcs1_v1_5_encode(length): # PKCS 1 v1.5
+def pkcs1_v1_5_padding_encode(length): # PKCS 1 v1.5
     while True:
         padding = secrets.token_bytes(length)
         if all(byte != 0 for byte in padding):
@@ -88,7 +88,7 @@ def oaep_padding_decode(encoded: bytes, k: int, label: bytes = b""):
     return db[i + 1:]
     
 
-def generate_keys(length, dir_path):
+def generate_keys(length, dir_path="CipherSystems/RSA/rsa_keys/"):
     
     p, q = algorithm_generate_prime(length // 2, 50), algorithm_generate_prime(length // 2, 50)
     N = p * q
@@ -122,7 +122,7 @@ def generate_keys(length, dir_path):
     }
 
     password = "P@ssw0rd"  
-    save_keys_windows_format(pub_key, scrt_key, password, dir_path="CipherSystems/RSA/rsa_keys/")
+    save_keys_windows_format(pub_key, scrt_key, password, dir_path)
 
     return pub_key, scrt_key
 
@@ -138,8 +138,7 @@ def convert_to_bytes(data):
     else:
         raise TypeError("Unsupported data type. Use str, int, bytes, or list of bytes.")
 
-def encrypt(message, padding_type="oaep", filename="CipherSystems/RSA/rsa_keys/pub_key.pem"):
-    pub_key = load_public_key_from_pem(filename)
+def encrypt(message, pub_key, padding_type="oaep"):
     N = pub_key["SubjectPublicKeyInfo"]["N"]
     block_size = (N.bit_length() + 7) // 8
 
@@ -157,7 +156,7 @@ def encrypt(message, padding_type="oaep", filename="CipherSystems/RSA/rsa_keys/p
             pad_length = block_size - 3 - len(block)
             if pad_length < 8:
                 raise ValueError("Message too long for RSA block")
-            padding = padding_pkcs1_v1_5_encode(pad_length)
+            padding = pkcs1_v1_5_padding_encode(pad_length)
             padded_block = padding + block
         else:
             padded_block = oaep_padding_encode(block, block_size)
@@ -169,8 +168,7 @@ def encrypt(message, padding_type="oaep", filename="CipherSystems/RSA/rsa_keys/p
     return encrypted_bytes
     
 
-def decrypt(password, enc_message: bytes, padding_type="oaep", filename="CipherSystems/RSA/rsa_keys/key_store.pfx"):
-    scrt_key = load_private_key_from_pfx(filename, password)
+def decrypt(enc_message: bytes, scrt_key, padding_type="oaep"):
     N = scrt_key["prime1"] * scrt_key["prime2"]
     block_size = (N.bit_length() + 7) // 8
 

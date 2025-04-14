@@ -1,4 +1,4 @@
-from rsa import encrypt, decrypt, generate_keys
+from rsa import encrypt, decrypt, generate_keys, load_private_key_from_pfx, load_public_key_from_pem
 
 
 def main():
@@ -7,8 +7,10 @@ def main():
     message_ru = "Если мне что-то не нравится, значит, не нравится, и все тут; так с какой стати, спрашивается, я стану делать вид, будто мне это нравится, только потому, что большинству моих соплеменников это нравится или они воображают, что нравится. Не могу я что-то любить или не любить по велению моды."
     # pub_key, scrt_key = generate_keys(size)
     password = "P@ssw0rd"
-    enc_message = encrypt(message_ru)
-    dec_message = decrypt(password, enc_message)
+    pub_key = load_public_key_from_pem("CipherSystems/RSA/rsa_keys/pub_key.pem")
+    scrt_key = load_private_key_from_pfx("CipherSystems/RSA/rsa_keys/key_store.pfx", password)
+    enc_message = encrypt(message_ru, pub_key)
+    dec_message = decrypt(enc_message, scrt_key)
     print(enc_message)
     print(dec_message.decode('utf-8'))
 
