@@ -7,10 +7,10 @@ from Streebog import streebog_256, streebog_512
 def xor_bytes(a, b):
     return bytes(x ^ y for x, y in zip(a, b))
 
-def hmac_function(key, data, algorithm):
-    if algorithm == sha512_function:
+def hmac_function(key, data, hash_algorithm):
+    if hash_algorithm == sha512_function:
         B = 128
-    elif algorithm == (sha256_function or streebog_256 or streebog_512):
+    elif hash_algorithm == (sha256_function or streebog_256 or streebog_512):
         B = 64
 
     key = convert_to_bytes(key)
@@ -24,8 +24,8 @@ def hmac_function(key, data, algorithm):
     ipad = b'\x36' * B
     opad = b'\x5c' * B
 
-    inner_hash = algorithm(xor_bytes(key, ipad) + data)
-    outer_hash = algorithm(xor_bytes(key, opad) + inner_hash)
+    inner_hash = hash_algorithm(xor_bytes(key, ipad) + data)
+    outer_hash = hash_algorithm(xor_bytes(key, opad) + inner_hash)
 
     return outer_hash   
 
