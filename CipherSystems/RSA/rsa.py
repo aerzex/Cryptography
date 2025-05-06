@@ -85,7 +85,8 @@ def oaep_padding_decode(encoded: bytes, k: int, label: bytes = b""):
         i += 1
     if i >= len(db) or db[i] != 1:
         raise ValueError("Invalid OAEP padding")
-    return db[i + 1:]
+    dbt = db[i + 1:]    
+    return dbt
     
 
 def generate_keys(length, dir_path="CipherSystems/RSA/rsa_keys/"):

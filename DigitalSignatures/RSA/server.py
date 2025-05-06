@@ -3,39 +3,18 @@ import struct
 import json
 import time
 
-from rsa_signature import load_public_key_from_pem, signature_decrypt, sha256_function, convert_to_bytes
+from rsa_signature import load_public_key_from_pem, verify_client_signature, generate_keys, load_private_key_from_pfx, signature_encrypt, sha256_function, sha512_function, streebog_256, streebog_512
 
 HOST = '127.0.0.1'
-PORT = 12345
+PORT = 55555
 
-def verify_signature(signature: dict, public_key):
-    try:
-        signer_info = signature["SignerInfos"]
-        signed_attributes = signer_info["SignedAttributes"]
-        signature_value = signer_info["SignatureValue"]
-        digest_algorithm = signer_info["DigestAlgorithmIdentifier"]
-        hash_function = globals()[signer_info["DigestAlgorithmIdentifier"]]
-
-        data_hex = signature["EncapsulatedContentInfo"]["OCTET STRING"]
-        data = bytes.fromhex(data_hex)
-        
-        message_digest = hash_function(data).hex()
-        
-        if signed_attributes["message_digest"] != message_digest:
-            return False, "Message digest mismatch"
-        
-        decrypted_hash = signature_decrypt(bytes.fromhex(signature_value), public_key).hex()
-        
-        if decrypted_hash != message_digest:
-            return False, "Signature verification failed"
-        
-        return True, "Signature is valid"
-    except Exception as e:
-        return False, f"Verification error: {str(e)}"
 
 def server():
-    public_key = load_public_key_from_pem("DigitalSignatures/RSA/rsa_keys/pub_key.pem")
-    
+    # generate_keys(1024, "DigitalSignatures/RSA/rsa_keys/server/")
+    client_public_key = load_public_key_from_pem("DigitalSignatures/RSA/rsa_keys/client/pub_key.pem")
+
+    server_pub_key = load_public_key_from_pem("DigitalSignatures/RSA/rsa_keys/server/pub_key.pem")
+    server_scrt_key = load_private_key_from_pfx("DigitalSignatures/RSA/rsa_keys/server/scrt_key.pfx", "P@ssw0rd")
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
         s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1) 
         s.bind((HOST, PORT))
@@ -46,28 +25,45 @@ def server():
             conn, addr = s.accept()
             with conn:
                 print(f"Connected by {addr}")
+
                 
                 try:
                     length = struct.unpack('!I', conn.recv(4))[0]
                     message_bytes = conn.recv(length)
                     signature = json.loads(message_bytes.decode('utf-8'))
+
+                    print(f"Request from client: {signature}")
                     
-                    is_valid, message = verify_signature(signature, public_key)
+                    is_valid, message = verify_client_signature(signature, client_public_key)
+                    
+                    signer_info = signature["SignerInfos"]
+                    hash_function = globals()[signer_info["DigestAlgorithmIdentifier"]]
+
+                    data_hex = signature["EncapsulatedContentInfo"]["OCTET STRING"]
+                    data = bytes.fromhex(data_hex)
+
+                    hex_hash_encrypted = signer_info["SignatureValue"]
+                    hash_encrypted = bytes.fromhex(hex_hash_encrypted)
                     
                     if is_valid:
-                        signature["SignerInfos"]["UnsignedAttributes"]["SET OF AttributeValue"]["timestamp"]["UTCTime"] = time.strftime(
-                            "%Y%m%d%H%M%SZ", time.gmtime()
-                        )
+                        timestamp = time.strftime("%y%m%d%H%M%SZ", time.gmtime())
+                        signer_info["UnsignedAttributes"]["SET OF AttributeValue"]["timestamp"]["UTCTime"] = timestamp
+                        
+                        timestamp_sign = signature_encrypt(hash_function(hash_function(data + hash_encrypted).hex() + timestamp), server_scrt_key).hex()
+                        signer_info["UnsignedAttributes"]["SET OF AttributeValue"]["signature"] = timestamp_sign
+                        signer_info["UnsignedAttributes"]["SET OF AttributeValue"]["certificate"] = server_pub_key
+
                         response = {
-                            "status": "valid",
-                            "message": message,
+                            "status": "success",
                             "signature": signature
                         }
                     else:
                         response = {
-                            "status": "invalid",
-                            "message": message
+                            "status": "error",
+                            "message": f"Invalid signature: {message}"
                         }
+                    
+
                     
                     response_bytes = json.dumps(response, ensure_ascii=False).encode('utf-8')
                     conn.sendall(struct.pack('!I', len(response_bytes)) + response_bytes)
