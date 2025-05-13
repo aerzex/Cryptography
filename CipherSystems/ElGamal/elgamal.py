@@ -13,13 +13,13 @@ def generate_padding(length):
         if all(byte != 0 for byte in padding):
             return b'\x00\x02' + padding + b'\x00'
         
-def save_keys(scrt_key, pub_key):
-    with open("CipherSystems/ElGamal/elgamal_keys/pub_key.json", "w", encoding="utf-8") as json_file:
+def save_keys(scrt_key, pub_key, dir_path):
+    with open(dir_path + "pub_key.json", "w", encoding="utf-8") as json_file:
         json.dump(pub_key, json_file, ensure_ascii=False, indent=4)
-    with open("CipherSystems/ElGamal/elgamal_keys/scrt_key.json", "w", encoding="utf-8") as json_file:
+    with open(dir_path + "scrt_key.json", "w", encoding="utf-8") as json_file:
         json.dump(scrt_key, json_file, ensure_ascii=False, indent=4)
 
-def generate_keys(size):
+def generate_keys(size, dir_parh):
     p = algorithm_generate_prime(size)
     divisors = algorithm_all_divisors(p - 1)
     prime_divisors = []
@@ -50,7 +50,7 @@ def generate_keys(size):
         "prime": p
     }
 
-    save_keys(scrt_key, pub_key)
+    save_keys(scrt_key, pub_key, dir_parh)
 
 def convert_to_bytes(data):
     if isinstance(data, str):

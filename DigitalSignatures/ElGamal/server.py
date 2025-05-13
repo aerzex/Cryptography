@@ -3,18 +3,18 @@ import struct
 import json
 import time
 
-from elgamal_signature import load_public_key, verify_client_signature, generate_keys, load_private_key, signature_encrypt, sha256_function, sha512_function, streebog_256, streebog_512
+from elgamal_signature import load_public_key, verify_client_signature, generate_keys, load_private_key, signature_encrypt, sha256_function, sha512_function, streebog_256, streebog_512, convert_to_bytes
 
 HOST = '127.0.0.1'
 PORT = 55555
 
 
 def server():
-    generate_keys(1024, "DigitalSignatures/ElGamal/elgamal_keys/server/")
+    # generate_keys(1024, "DigitalSignatures/ElGamal/elgamal_keys/server/")
     client_public_key = load_public_key("DigitalSignatures/ElGamal/elgamal_keys/client/pub_key.json")
 
     server_pub_key = load_public_key("DigitalSignatures/ElGamal/elgamal_keys/server/pub_key.json")
-    server_scrt_key = load_private_key("DigitalSignatures/ElGamal/elgamal_keys/server/scrt_key.json", "P@ssw0rd")
+    server_scrt_key = load_private_key("DigitalSignatures/ElGamal/elgamal_keys/server/scrt_key.json")
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
         s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1) 
         s.bind((HOST, PORT))
@@ -42,14 +42,13 @@ def server():
                     data_hex = signature["EncapsulatedContentInfo"]["OCTET STRING"]
                     data = bytes.fromhex(data_hex)
 
-                    hex_hash_encrypted = signer_info["SignatureValue"]
-                    hash_encrypted = bytes.fromhex(hex_hash_encrypted)
-                    
+                    hash_encrypted = signer_info["SignatureValue"]
+                    bytes_hash_encrypted = convert_to_bytes(hash_encrypted[0]) + convert_to_bytes(hash_encrypted[1])
                     if is_valid:
                         timestamp = time.strftime("%y%m%d%H%M%SZ", time.gmtime())
                         signer_info["UnsignedAttributes"]["SET OF AttributeValue"]["timestamp"]["UTCTime"] = timestamp
                         
-                        timestamp_sign = signature_encrypt(hash_function(hash_function(data + hash_encrypted).hex() + timestamp), server_scrt_key).hex()
+                        timestamp_sign = signature_encrypt(hash_function(hash_function(data + bytes_hash_encrypted).hex() + timestamp), server_scrt_key, server_pub_key)
                         signer_info["UnsignedAttributes"]["SET OF AttributeValue"]["signature"] = timestamp_sign
                         signer_info["UnsignedAttributes"]["SET OF AttributeValue"]["certificate"] = server_pub_key
 
