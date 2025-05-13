@@ -25,7 +25,7 @@ def client():
             response_data = json.loads(response.decode('utf-8'))
             print("Response from server:", response_data)
             
-            verify_center_signature(response_data, data)
+            verify_center_signature(response_data)
     
     except Exception as e:
         print(f"Client error: {e}")

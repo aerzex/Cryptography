@@ -135,7 +135,7 @@ def verify_client_signature(signature: dict, public_key):
         return False, f"Verification error: {str(e)}"
 
 
-def verify_center_signature(response_data, original_data):
+def verify_center_signature(response_data):
     try:
         if response_data.get("status") != "success":
             print(f"Server error: {response_data.get('message', 'No message')}")

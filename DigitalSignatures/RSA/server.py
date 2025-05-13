@@ -10,7 +10,7 @@ PORT = 55555
 
 
 def server():
-    # generate_keys(1024, "DigitalSignatures/RSA/rsa_keys/server/")
+    generate_keys(1024, "DigitalSignatures/ElGamal/elgamal_keys/server/")
     client_public_key = load_public_key_from_pem("DigitalSignatures/RSA/rsa_keys/client/pub_key.pem")
 
     server_pub_key = load_public_key_from_pem("DigitalSignatures/RSA/rsa_keys/server/pub_key.pem")
