@@ -65,9 +65,6 @@ def convert_to_bytes(data):
         raise TypeError("Unsupported data type. Use str, int, bytes, or list of bytes.")
 
 def encrypt(message, pub_key):
-    with open("CipherSystems/ElGamal/elgamal_keys/pub_key.json", "r", encoding="utf-8") as json_file:
-        pub_key = json.load(json_file)
-
     p, alpha, beta  = pub_key["prime"], pub_key["alpha"], pub_key["beta"]
     block_size = (p.bit_length() + 7) // 8
     max_msg_len = block_size - 3 - 8
@@ -106,3 +103,13 @@ def decrypt(enc_message, scrt_key):
         dec_blocks.append(dec_block[index+1:])
     
     return b''.join(dec_blocks).decode('utf-8')
+
+def load_public_key(filepath):
+    with open(filepath, "r", encoding="utf-8") as json_file:
+        pub_key = json.load(json_file)
+    return pub_key
+
+def load_private_key(filepath):
+    with open(filepath, "r", encoding="utf-8") as json_file:
+        scrt_key = json.load(json_file)
+    return scrt_key
