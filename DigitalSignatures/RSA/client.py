@@ -5,7 +5,7 @@ import json
 from rsa_signature import sign_data_client, serialize_signature, load_private_key_from_pfx, sha256_function, verify_center_signature
 
 HOST = '127.0.0.1'
-PORT = 55555
+PORT = 55556
 
 def client():
     data = "Random data"

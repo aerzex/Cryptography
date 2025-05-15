@@ -6,11 +6,11 @@ import time
 from rsa_signature import load_public_key_from_pem, verify_client_signature, generate_keys, load_private_key_from_pfx, signature_encrypt, sha256_function, sha512_function, streebog_256, streebog_512
 
 HOST = '127.0.0.1'
-PORT = 55555
+PORT = 55556
 
 
 def server():
-    generate_keys(1024, "DigitalSignatures/RSA/rsa_keys/server/")
+    # generate_keys(1024, "DigitalSignatures/RSA/rsa_keys/server/")
     client_public_key = load_public_key_from_pem("DigitalSignatures/RSA/rsa_keys/client/pub_key.pem")
 
     server_pub_key = load_public_key_from_pem("DigitalSignatures/RSA/rsa_keys/server/pub_key.pem")
