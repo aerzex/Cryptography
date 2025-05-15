@@ -58,52 +58,21 @@ def sign_data_client(data, scrt_key, hash_function):
 
 def signature_encrypt(message, scrt_key, padding_type="oaep"):
     N = scrt_key["prime1"] * scrt_key["prime2"]
-    block_size = (N.bit_length() + 7) // 8
-
-    if padding_type == "pkcs1_v1_5":
-        max_msg_len = block_size - 11
-    else:
-        max_msg_len = block_size - 2 * 32 - 2
 
     data_bytes = convert_to_bytes(message)
-    blocks = [data_bytes[i:i + max_msg_len] for i in range(0, len(data_bytes), max_msg_len)]
-    encrypted_bytes = b""
-
-    for block in blocks:
-        if padding_type == "pkcs1_v1_5":
-            pad_length = block_size - 3 - len(block)
-            if pad_length < 8:
-                raise ValueError("Message too long for RSA block")
-            padding = pkcs1_v1_5_padding_encode(pad_length)
-            padded_block = padding + block
-        else:
-            padded_block = oaep_padding_encode(block, block_size)
-
-        int_block = int.from_bytes(padded_block, 'big')
-        enc_block = algorithm_fast_pow(int_block, scrt_key["privateExponent"], N)
-        encrypted_bytes += enc_block.to_bytes(block_size, 'big')
+    int_block = int.from_bytes(data_bytes, 'big')
+    enc_block = algorithm_fast_pow(int_block, scrt_key["privateExponent"], N)
+    encrypted_bytes = convert_to_bytes(enc_block)
 
     return encrypted_bytes
 
 def signature_decrypt(enc_message: bytes, pub_key, padding_type="oaep"):
     N = pub_key["SubjectPublicKeyInfo"]["N"]
-    block_size = (N.bit_length() + 7) // 8
 
-    if len(enc_message) % block_size != 0:
-        raise ValueError("Invalid encrypted message length")
+    dec_m = algorithm_fast_pow(int.from_bytes(enc_message, 'big'), pub_key["SubjectPublicKeyInfo"]["publicExponent"], N)
+    bytes_m = convert_to_bytes(dec_m)
 
-    dec_blocks = []
-    for i in range(0, len(enc_message), block_size):
-        block = enc_message[i:i + block_size]
-        dec_m = algorithm_fast_pow(int.from_bytes(block, 'big'), pub_key["SubjectPublicKeyInfo"]["publicExponent"], N)
-        dec_block = dec_m.to_bytes(block_size, byteorder='big')
-        if padding_type == "pkcs1_v1_5":
-            dec_block = pkcs1_v1_5_padding_decode(dec_m, block_size)
-        else:
-            dec_block = oaep_padding_decode(dec_block, block_size)
-        dec_blocks.append(dec_block)
-
-    return b''.join(dec_blocks)
+    return bytes_m
 
 def serialize_signature(signature):
     message = json.dumps(signature, ensure_ascii=False)
