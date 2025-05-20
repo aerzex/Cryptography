@@ -1,5 +1,6 @@
 BASE32_ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567"
 BASE32_REVERSE = {char: index for index, char in enumerate(BASE32_ALPHABET)}
+
 def base32_encode(data):
     data_bytes = data.encode('utf-8')
     bits = ''.join(bin(byte)[2:].zfill(8) for byte in data_bytes)
