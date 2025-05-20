@@ -70,7 +70,7 @@ def generate_keys(size, dir_path):
     y0 = algorithm_fast_pow(alpha, x0, p)
     
     leader_key = [x0, y0]
-
+    5
     n = 2
     members_keys = []
     for i in range(n):
@@ -78,7 +78,7 @@ def generate_keys(size, dir_path):
         yi = algorithm_fast_pow(alpha, xi, p)
         members_keys.append((xi, yi))
 
-    save_keys(leader_key, members_keys, dir_path)
+    save_keys(leader_key, members_keys, p, q, alpha, dir_path)
 
     
 def save_keys(leader_key, members_keys, dir_path):
@@ -114,5 +114,8 @@ def save_keys(leader_key, members_keys, dir_path):
     
 
 def signature_encrypt(hash_value: bytes, scrt_key, pub_key):
-
     pass
+
+def verify_sign(signature, pub_key):
+    pass
+
