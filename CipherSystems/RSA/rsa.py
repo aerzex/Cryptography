@@ -89,7 +89,7 @@ def oaep_padding_decode(encoded: bytes, k: int, label: bytes = b""):
     return dbt
     
 
-def generate_keys(length, dir_path="CipherSystems/RSA/rsa_keys/"):
+def generate_keys(length, password, dir_path="CipherSystems/RSA/rsa_keys/"):
     
     p, q = algorithm_generate_prime(length // 2, 50), algorithm_generate_prime(length // 2, 50)
     N = p * q
@@ -122,7 +122,6 @@ def generate_keys(length, dir_path="CipherSystems/RSA/rsa_keys/"):
         "PKCS7CertChain-PKCS": 0
     }
 
-    password = "P@ssw0rd"  
     save_keys_windows_format(pub_key, scrt_key, password, dir_path)
 
     return pub_key, scrt_key
