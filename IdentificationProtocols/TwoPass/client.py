@@ -12,7 +12,7 @@ def main():
     identifier_a = "UserA"
     identifier_b = "UserB"
     auth_choice = input("Choose authentication method (timestamp/random): ").lower()
-    message = input("Enter message: ")
+    M1 = input("Enter message: ")
     
     if auth_choice == "timestamp":
         auth_value = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
@@ -21,14 +21,14 @@ def main():
         auth_value = str(random.randint(100000, 999999))
         auth_type = "random"
 
-    plaintext = f"{identifier_a}|{identifier_b}|{auth_type}|{auth_value}|{message}"
+    plaintext = f"{identifier_a}|{identifier_b}|{auth_type}|{auth_value}|{M1}"
 
     try:
-        encrypted = encrypt_message(plaintext, KEY)
+        M2 = encrypt_message(plaintext, KEY)
 
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
             s.connect((HOST, PORT))
-            s.sendall(encrypted)
+            s.sendall(M2)
 
             response = s.recv(1024)
             if not response:

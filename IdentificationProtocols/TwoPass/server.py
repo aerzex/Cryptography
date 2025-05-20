@@ -49,10 +49,10 @@ def main():
                 
                 print(f"Message from {identifier_a}: {message}")
                 print("Identification successful!")
-                
-                response = f"UserB|UserA|Authenticated|{auth_value}"
-                encrypted_response = encrypt_message(response, KEY)
-                conn.sendall(encrypted_response)
+                M3 = "Server message"
+                response = f"UserB|UserA|Authenticated|{auth_value}|{M3}"
+                M4 = encrypt_message(response, KEY)
+                conn.sendall(M4)
                 
             except Exception as e:
                 print(f"Identification failed: {e}")
