@@ -1,18 +1,23 @@
 import socket
 import os
 import sys
+import secrets
+import json
+
 lib_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '../..'))
 sys.path.append(lib_path)
 
-from CipherSystems.RSA import encrypt, decrypt, generate_keys, load_private_key_from_pfx, load_public_key_from_pem
-from HashFunctions.Streebog import streebog_256
+from CipherSystems.RSA import encrypt, decrypt, load_private_key_from_pfx, load_public_key_from_pem
+from HashFunctions.SHA2 import sha256_function
 
 PORT = 55560
 
 def main():
-    generate_keys(1024, "P@ssw0rd", "IdentificationProtocols/Asymetrical/rsa_keys/")
-    scrt_key = load_private_key_from_pfx("IdentificationProtocols/Asymetrical/rsa_keys/scrt_key.pfx", "P@ssw0rd")
+    # generate_keys(1024, "P@ssw0rd", "IdentificationProtocols/Asymetrical/rsa_keys/server/")
+    scrt_key = load_private_key_from_pfx("IdentificationProtocols/Asymetrical/rsa_keys/server/scrt_key.pfx", "P@ssw0rd")
     identifier_a = "UserA"
+    pub_key = load_public_key_from_pem("IdentificationProtocols/Asymetrical/rsa_keys/client/pub_key.pem")
+    identifier_b = "UserB"
 
     server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     server.bind(('localhost', PORT))
@@ -23,34 +28,42 @@ def main():
         conn, addr = server.accept()
         with conn:
             print(f"Connected by {addr}")
-            
+
             try:
-                data = conn.recv(1024)
+                data = conn.recv(4096)
                 if not data:
                     print("No data received")
                     continue
 
-                hash_value = data["Hash_value"]
-                ID_a = data["Identifier_A"]
-                encrypted_hex = data["EncryptedHex"]
-                encrypted = bytes(encrypted_hex).fromhex()
-                decrypted = decrypt(encrypted, scrt_key)
-                z = decrypted[ID_a:]
-                expected_hash = streebog_256(int(z)).hex
+                message = json.loads(data.decode())
+                hash_value = message["Hash_value"]
+                ID_a = message["Identifier_A"]
+                encrypted_hex = message["EncryptedHex"]
+                encrypted = bytes.fromhex(encrypted_hex)
+                decrypted = decrypt(encrypted, scrt_key).decode()
+                z = decrypted[len(ID_a):]
+                expected_hash = sha256_function(int(z)).hex()
+
                 if ID_a != identifier_a or hash_value != expected_hash:
                     print("Identification failed!")
-                    response = "Identification failed!"
-                    conn.sendall(response)
+                    conn.sendall(json.dumps({"status": "Identification failed!"}).encode())
+                    continue
 
                 print("Identification successful!")
-                response = "Identification successful!"
-                conn.sendall(response)
-
+                z_b = str(secrets.randbelow(999999) + 100000)
+                combined_hash = sha256_function(str(z) + z_b)
+                encrypted_value = encrypt(ID_a + str(z) + identifier_b + z_b, pub_key)
+                response = {
+                    "status": "Identification successful!",
+                    "Hash_value": combined_hash.hex(),
+                    "EncryptedHex": encrypted_value.hex()
+                }
+                conn.sendall(json.dumps(response).encode())
 
             except Exception as e:
-                print(f"Identification failed: {e}")
-                conn.sendall(f"Identification failed: {e}")
+                error_msg = f"Identification failed: {e}"
+                print(error_msg)
+                conn.sendall(json.dumps({"status": error_msg}).encode())
 
 if __name__ == "__main__":
     main()
-    
