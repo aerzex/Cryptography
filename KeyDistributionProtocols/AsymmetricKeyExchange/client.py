@@ -12,21 +12,20 @@ from CipherSystems.RSA import load_private_key_from_pfx, load_public_key_from_pe
 from HashFunctions.SHA2 import sha256_function, sha512_function
 
 HOST = '127.0.0.1'
-PORT = 55556
+PORT = 55562
 
 def client():
     data = {
-       "timestamp": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+        "timestamp": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
         "secret": "password",
         "identifierB": "UserB",
     }
     data_dump = json.dumps(data)
-
-    sign_scrt_key = "DigitalSignatures/RSA/rsa_keys/client/scrt_key.pfx"
-    server_pub_key = load_public_key_from_pem("DigitalSignatures/RSA/rsa_keys/server/pub_key.pem")
+    
     password = "P@ssw0rd"
     try:
-        scrt_key = load_private_key_from_pfx(sign_scrt_key, password)
+        server_pub_key = load_public_key_from_pem("DigitalSignatures/RSA/rsa_keys/server/pub_key.pem")
+        scrt_key = load_private_key_from_pfx("DigitalSignatures/RSA/rsa_keys/client/scrt_key.pfx", password)
         signature = sign_data_client(data_dump, scrt_key, sha512_function)
 
         message_serialized = serialize_signature(signature)

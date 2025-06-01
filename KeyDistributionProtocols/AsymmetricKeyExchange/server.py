@@ -11,7 +11,7 @@ from CipherSystems.RSA import load_private_key_from_pfx, load_public_key_from_pe
 from HashFunctions.SHA2 import sha512_function, sha256_function
 
 HOST = '127.0.0.1'
-PORT = 55556
+PORT = 55562
 
 def server():
     client_public_key = load_public_key_from_pem("DigitalSignatures/RSA/rsa_keys/client/pub_key.pem")
