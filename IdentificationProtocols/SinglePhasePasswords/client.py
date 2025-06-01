@@ -6,6 +6,9 @@ lib_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '../..'))
 sys.path.append(lib_path)
 from HashFunctions.SHA2 import sha256_function, sha512_function
 
+HOST = 'localhost'
+PORT = 55561
+
 def compute_hash_chain(s, k, hash_function):
     try:
         result = s.encode('ascii')
@@ -52,8 +55,7 @@ def authenticate(a, s, n, i, hash_function, host, port):
         return False
 
 def main():
-    HOST = 'localhost'
-    PORT = 55558
+
     
     try:
         a = input("Enter your identifier: ")

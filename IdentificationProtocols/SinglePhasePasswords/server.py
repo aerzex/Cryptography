@@ -6,6 +6,9 @@ lib_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '../..'))
 sys.path.append(lib_path)
 from HashFunctions.SHA2 import sha256_function, sha512_function
 
+HOST = 'localhost'
+PORT = 55561
+
 users = {}
 
 def handle_registration(a, hash_type, p_0_hex):
@@ -47,8 +50,7 @@ def handle_authentication(a, i_str, p_i_hex):
         return f"AUTH_FAIL: {e}"
 
 def main():
-    HOST = 'localhost'
-    PORT = 55558
+
     
     try:
         server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
