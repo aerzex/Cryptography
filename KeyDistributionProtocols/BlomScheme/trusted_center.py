@@ -48,7 +48,6 @@ def generate_keys(size, n, m):
             "p": p,
             "u_list": u_list
         }
-        os.makedirs("KeyDistributionProtocols/BlomScheme/blom_scheme_keys/", exist_ok=True)
         with open("KeyDistributionProtocols/BlomScheme/blom_scheme_keys/public_params.json", "w", encoding="utf-8") as f:
             json.dump(public_params, f, ensure_ascii=False, indent=4)
 
