@@ -16,8 +16,8 @@ PORT = 55563
 def compute_generator(password, p, hash_function=sha512_function):
     password_bytes = password.encode('utf-8')
     hash_value = hash_function(password_bytes) 
-    g = int.from_bytes(hash_value, 'big') % p
-    return g
+    return int.from_bytes(hash_value, 'big') % p
+    
 
 def main():
     password = "P@ssw0rd"  
@@ -45,11 +45,9 @@ def main():
 
 
                 g = compute_generator(password, p, hash_function)
-                print(f"Computed g={g} for p={p}")
 
                 y = secrets.randbelow(p - 4) + 2
                 beta = algorithm_fast_pow(g, y, p)
-                print(f"Generated y={y}, beta={beta}")
 
 
                 with open("KeyDistributionProtocols/SPEKE/speke_keys/client2_keys.txt", "w", encoding="utf-8") as f:

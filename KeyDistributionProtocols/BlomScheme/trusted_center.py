@@ -27,13 +27,13 @@ def generate_parameters(n, m, size):
     return p, u_list, a
 
 def compute_user_polynomial(u, a, m, p):
-    coeffs = [0] * (m + 1)
+    g = [0] * (m + 1)
     for i in range(m + 1):
-        sum_j = 0
+        coefficient = 0
         for j in range(m + 1):
-            sum_j = (sum_j + a[i][j] * algorithm_fast_pow(u, j, p)) % p
-        coeffs[i] = sum_j
-    return coeffs
+            coefficient = (coefficient + a[i][j] * algorithm_fast_pow(u, j, p)) % p
+        g[i] = coefficient
+    return g
 
 def generate_keys(size, n, m):
     try:

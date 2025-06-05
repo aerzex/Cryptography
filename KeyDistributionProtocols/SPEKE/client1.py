@@ -13,18 +13,19 @@ from HashFunctions.SHA2 import sha512_function, sha256_function
 HOST = 'localhost'
 PORT = 55563
 
-def generate_users_keys(size, password, hash_function=sha512_function, filename="KeyDistributionProtocols/SPEKE/speke_keys/"):
+def generate_users_keys(size, filename="KeyDistributionProtocols/SPEKE/speke_keys/"):
     p = algorithm_generate_prime(size)
-    password_bytes = password.encode('utf-8')
-    hash_value = hash_function(password_bytes) 
-    g = int.from_bytes(hash_value, 'big') % p
     users_keys = {
-        "prime": p,
-        "g": g
+        "prime": p
     }
     with open(filename + "users_keys.json", "w", encoding="utf-8") as json_file:
         json.dump(users_keys, json_file, ensure_ascii=False, indent=4)
-    return p, g
+    return p
+
+def compute_genertor(password, hash_function, p):
+    password_bytes = password.encode('utf-8')
+    hash_value = hash_function(password_bytes) 
+    return int.from_bytes(hash_value, 'big') % p
 
 def main():
     
@@ -32,18 +33,16 @@ def main():
     hash_function = sha512_function
     filename = "KeyDistributionProtocols/SPEKE/speke_keys/"
   
-    # generate_users_keys(1024, password, hash_function)
+    # generate_users_keys(1024)
     
     try:
 
         with open(filename + "users_keys.json", "r", encoding="utf-8") as json_file:
             users_keys = json.load(json_file)
-        p, g = users_keys["prime"], users_keys["g"]
-        print(f"Loaded parameters: p={p}, g={g}")
-
+        p = users_keys["prime"]
+        g = compute_genertor(password, hash_function, p)
         x = secrets.randbelow(p - 4) + 2
         alpha = algorithm_fast_pow(g, x, p)
-        print(f"Generated x={x}, alpha={alpha}")
 
         with open("KeyDistributionProtocols/SPEKE/speke_keys/client1_keys.txt", "w", encoding="utf-8") as f:
             f.write(f"private_x={x}\npublic_alpha={alpha}\n")

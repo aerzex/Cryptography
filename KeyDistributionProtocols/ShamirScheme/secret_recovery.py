@@ -14,18 +14,17 @@ def lagrange_interpolation(shares, p):
     t = len(shares)
     result = 0
     
-    for j in range(t):
-        x_j, y_j = shares[j]
-        term = y_j
-        for m in range(t):
-            if m != j:
-                x_m = shares[m][0]
-                denominator = (x_j - x_m) % p
+    for i in range(t):
+        x_i, y_i = shares[i]
+        for j in range(t):
+            if j != i:
+                x_j = shares[j][0]
+                denominator = (x_i - x_j) % p
                 if denominator == 0:
                     raise ValueError("Duplicate x_i values")
                 denominator_inv = algorithm_comprasion(denominator, 1, p)[0]
-                term = (term * (-x_m % p) * denominator_inv) % p
-        result = (result + term) % p
+                temp = (y_i * (-x_j % p) * denominator_inv) % p
+        result = (result + temp) % p
     
     return result
 

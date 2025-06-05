@@ -6,10 +6,10 @@ lib_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '../..'))
 sys.path.append(lib_path)
 from MathAlgorithms.NumberTheoreticAlgorithms import algorithm_fast_pow
 
-def compute_session_key(coeffs, u_other, p):
+def compute_session_key(coefficients, u_other, p):
     k = 0
-    for j, coeff in enumerate(coeffs):
-        k = (k + coeff * algorithm_fast_pow(u_other, j, p)) % p
+    for j, coefficient in enumerate(coefficients):
+        k = (k + coefficient * algorithm_fast_pow(u_other, j, p)) % p
     return k
 
 def main():

@@ -13,21 +13,21 @@ def generate_shares(n, t, size=1024):
     while p <= n:
         p = algorithm_generate_prime(size)
     
-    x_list = []
+    user_list = []
     for i in range(1, n + 1):
-        x_list.append(i)
+        user_list.append(i)
     
-    coeffs = [secrets.randbelow(p)]
-    coeffs.extend(secrets.randbelow(p) for _ in range(t - 1))
+    r = [secrets.randbelow(p)]
+    r.extend(secrets.randbelow(p) for _ in range(t - 1))
     
     shares = []
-    for x_i in x_list:
-        y_i = 0
-        for j, coeff in enumerate(coeffs):
-            y_i = (y_i + coeff * algorithm_fast_pow(x_i, j, p)) % p
-        shares.append((x_i, y_i))
+    for r_i in user_list:
+        s_i = 0
+        for j, coefficient in enumerate(r):
+            s_i = (s_i + coefficient * algorithm_fast_pow(r_i, j, p)) % p
+        shares.append((r_i, s_i))
     
-    return p, shares, coeffs[0] 
+    return p, shares, r[0] 
 
 def main():
     n = 3
