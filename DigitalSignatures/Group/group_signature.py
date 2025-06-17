@@ -7,15 +7,15 @@ sys.path.append(lib_path)
 
 from HashFunctions.SHA2 import sha256_function, sha512_function, convert_to_bytes
 from HashFunctions.Streebog import streebog_256, streebog_512
-from MathAlgorithms.NumberTheoreticAlgorithms import algorithm_fast_pow, algorithm_comprasion, algorithm_euclid_extended, algorithm_generate_prime
+from MathAlgorithms.NumberTheoreticAlgorithms import algorithm_fast_pow, algorithm_comprasion, algorithm_euclid_extended, algorithm_generate_prime, algorithm_Miller_Rabin_test
 import secrets
 
-def sign_data_client(data, scrt_key, pub_key, hash_function):
+def sign_data_client(data, U, E, S, hash_function):
     data = convert_to_bytes(data)
     hash_value = hash_function(data)
     hex_hash_value = hash_value.hex()
-    hash_encrypted = signature_encrypt(hash_value, scrt_key, pub_key)
-    bytes_hash_encrypted = convert_to_bytes(hash_encrypted[0]) + convert_to_bytes(hash_encrypted[1])
+    signature_value = (U, E, S)
+    hash_signature_value = hash_function(convert_to_bytes(U) + convert_to_bytes(E) + convert_to_bytes(S))
 
     signature = {
         "CMSVersion": 1,
@@ -34,11 +34,11 @@ def sign_data_client(data, scrt_key, pub_key, hash_function):
                 "message_digest": hex_hash_value
             },
             "SignatureAlgorithmIdentifier": "RSAdsi",
-            "SignatureValue": hash_encrypted, 
+            "SignatureValue": signature_value, 
             "UnsignedAttributes": { 
                 "OBJECT IDENTIFIER": "signature-time-stamp",
                 "SET OF AttributeValue": {
-                    "hash": hash_function(data + bytes_hash_encrypted).hex(),  
+                    "hash": hash_function(data + hash_signature_value).hex(),  
                     "timestamp": {
                         "UTCTime": "",  
                         "GeneralizedTime": ""  
@@ -51,12 +51,27 @@ def sign_data_client(data, scrt_key, pub_key, hash_function):
     }
     return signature
 
+def generate_member_keys(member_id, p, alpha, dir_path="DigitalSignatures/Group/group_keys"):
+    x = secrets.randbits(256)    
+    y = algorithm_fast_pow(alpha, x, p)
 
-def generate_keys(size, dir_path):
-    p = algorithm_generate_prime(size)
-    q = algorithm_generate_prime(size // 2)
-    while((p - 1) % q == 0):
-        q = algorithm_generate_prime(256)
+    member_keys = (x, y)
+    save_member_keys(member_id, member_keys, dir_path)
+
+
+
+
+def generate_leader_keys(size, dir_path="DigitalSignatures/Group/group_keys"):
+
+    while True:
+        p = algorithm_generate_prime(size)
+        q = algorithm_generate_prime(size)
+        N = p * q
+        if algorithm_Miller_Rabin_test(2 * N + 1):
+            p = 2 * N + 1
+            break
+
+    
 
     alpha = 0
     while True:
@@ -65,27 +80,21 @@ def generate_keys(size, dir_path):
         if alpha != 1:
             if algorithm_fast_pow(alpha, q, p) == 1:
                 break
-            
-    x0 = secrets.randbelow(q - 2) + 1
-    y0 = algorithm_fast_pow(alpha, x0, p)
+
+    X = secrets.randbits(256)
+    L = algorithm_fast_pow(alpha, X, p)
     
-    leader_key = [x0, y0]
-    5
-    n = 2
-    members_keys = []
-    for i in range(n):
-        xi = secrets.randbelow(q - 2) + 1
-        yi = algorithm_fast_pow(alpha, xi, p)
-        members_keys.append((xi, yi))
+    leader_key = (X, L)
 
-    save_keys(leader_key, members_keys, p, q, alpha, dir_path)
+    e = secrets.randbits(32)
+    phi_N = (p - 1) * (q - 1)
+    d = algorithm_comprasion(e, 1, phi_N)[0]
+    save_leader_key(leader_key, p, e, d, alpha, N, dir_path)
 
-    
-def save_keys(leader_key, members_keys, dir_path):
-    os.makedirs(dir_path, exist_ok=True)
 
-    leader_secret = {"x0": str(leader_key[0])}
-    leader_public = {"y0": str(leader_key[1])}
+def save_leader_key(leader_key, p, e, d, alpha, N, dir_path):
+    leader_secret = {"X": leader_key[0], "PrivateExponent": d}
+    leader_public = {"Prime": p, "Alpha": alpha, "L": leader_key[1], "Exponent": e, "N": N}
     
     leader_secret_path = os.path.join(dir_path, "leader_secret_key.json")
     leader_public_path = os.path.join(dir_path, "leader_public_key.json")
@@ -95,27 +104,83 @@ def save_keys(leader_key, members_keys, dir_path):
     with open(leader_public_path, 'w', encoding='utf-8') as f:
         json.dump(leader_public, f, indent=4, ensure_ascii=False)
 
-    for i, (xi, yi) in enumerate(members_keys, 1):
-        member_secret = {"xi": str(xi)}
-        member_public = {"yi": str(yi)}
-        
-        member_secret_path = os.path.join(dir_path, f"member_{i}_secret_key.json")
-        member_public_path = os.path.join(dir_path, f"member_{i}_public_key.json")
-        
-        with open(member_secret_path, 'w', encoding='utf-8') as f:
-            json.dump(member_secret, f, indent=4, ensure_ascii=False)
-        with open(member_public_path, 'w', encoding='utf-8') as f:
-            json.dump(member_public, f, indent=4, ensure_ascii=False)
-    
-
-
-
 
     
+def save_member_keys(member_id: int, member_keys: dict, dir_path: str):
+    os.makedirs(dir_path, exist_ok=True)
 
-def signature_encrypt(hash_value: bytes, scrt_key, pub_key):
-    pass
+    member_secret = {"id": member_id, "x": member_keys[0]}
+    member_public = {"id": member_id, "y": member_keys[1]}
+    
+    member_secret_path = os.path.join(dir_path, f"member_{member_id}_secret_key.json")
+    member_public_path = os.path.join(dir_path, f"member_{member_id}_public_key.json")
+    
+    with open(member_secret_path, 'w', encoding='utf-8') as f:
+        json.dump(member_secret, f, indent=4, ensure_ascii=False)
+    with open(member_public_path, 'w', encoding='utf-8') as f:
+        json.dump(member_public, f, indent=4, ensure_ascii=False)
+
+
+def compute_lambda_exponent(hash_value: bytes, y: int, d: int, hash_function):    
+    y_bytes = convert_to_bytes(y)
+    hash_digest = hash_function(hash_value + y_bytes + hash_function(hash_value + y_bytes + convert_to_bytes(d)))
+    lymbda = int.from_bytes(hash_digest)
+
+    return lymbda
+
+def encrypt_1_part_signature(y, lamda, p):
+    U = 1
+    for i in range(len(lamda)):
+        U = U * algorithm_fast_pow(y[i], lamda[i], p) % p 
+
+    return U
+
+def encrypt_2_part_signature(hash_value: bytes, R: list, p: int, U: int, hash_function):
+    R_sum = 1
+    for i in range(len(R)):
+        R_sum = R_sum * R[i] % p
+
+    E = hash_function(hash_value + convert_to_bytes(R_sum) + convert_to_bytes(U))
+    
+    return int.from_bytes(E), R_sum
+
+def encrypt_3_part_signature(S, N, d):
+    S_sum = 0
+    for i in range(len(S)):
+        S_sum = (S_sum + S[i]) % N
+    S = algorithm_fast_pow(S_sum, d, N)
+    return S
+        
+
+def load_key(filename):
+    with open(filename, "r", encoding="utf-8") as json_file:
+        pub_key = json.load(json_file)
+    return pub_key
+
+
+    
 
 def verify_sign(signature, pub_key):
-    pass
+    try:
+        p, alpha, e, L  = pub_key["Prime"], pub_key["Alpha"], pub_key["Exponent"], pub_key["L"]
 
+        signer_info = signature["SignerInfos"]
+        signed_attributes = signer_info["SignedAttributes"]
+        signature_value = signer_info["SignatureValue"]
+        hash_function = globals()[signer_info["DigestAlgorithmIdentifier"]]
+
+        data_hex = signature["EncapsulatedContentInfo"]["OCTET STRING"]
+        data = bytes.fromhex(data_hex)
+        
+        message_digest = hash_function(data)
+        U, E, S = signature_value[0], signature_value[1], signature_value[2]
+        UL_inv = algorithm_comprasion(U * L, 1, p)[0]
+        R = (algorithm_fast_pow(UL_inv, E, p) * algorithm_fast_pow(alpha, algorithm_fast_pow(S, e, (p - 1) // 2), p)) % p
+        E_expected = int.from_bytes(hash_function(message_digest + convert_to_bytes(R) + convert_to_bytes(U)))
+
+        if E != E_expected:
+            return False, "Signature verification failed"
+    
+        return True, "Signature is valid"
+    except Exception as e:
+        return False, f"Verification error: {str(e)}"

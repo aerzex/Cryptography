@@ -9,3 +9,4 @@ DigitalSignatures/ElGamal/__pycache__
 DigitalSignatures/Fiat_Shamir/__pycache__
 IdentificationProtocols/TwoPass/__pycache__
 IdentificationProtocols/ThreePass/__pycache__
+DigitalSignatures/Group/__pycache__

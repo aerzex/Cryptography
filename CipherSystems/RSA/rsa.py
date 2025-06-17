@@ -99,7 +99,7 @@ def generate_keys(length, password, dir_path="CipherSystems/RSA/rsa_keys/"):
         if algorithm_euclid_extended(e, phi_N)[0] != 1:
             continue
         
-        d = algorithm_comprasion(e,1, phi_N)[0]
+        d = algorithm_comprasion(e, 1, phi_N)[0]
         if d > 1/3 * (N ** (1/4)):
             break
         
